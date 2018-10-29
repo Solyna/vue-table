@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>表格！！！！！</title>
+    <link rel="stylesheet" href="table.css">
+    <link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/css/bootstrap.min.css">
+</head>
+
+<body>
+    <div id="app" style="height:100%;overflow:hidden">
+        <nav class="navbar navbar-expand navbar-dark bg-dark static-top">
+            <span>操作</span>
+            <button class="btn btn-primary" @click="show()">{{preview?"取消预览":"预览"}}</button>
+        </nav>
+        <div id="wrapper">
+            <ul class="sidebar navbar-nav">
+                <li></li>
+                <li></li>
+                <li></li>
+            </ul>
+            <div id="content-wrapper">
+                <div class="container-fluid">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="#">操作</a></li>
+                        <li class="breadcrumb-item active"><a href="#">表格</a></li>
+                    </ol>
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <span style="margin-right:20px">报价单</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-sm-24 col-md-12 unitPrice">
+                                    <span>单价：</span>
+                                    <input :class="{previewstyle: preview}" :disabled="preview" v-model.number="unitPrice"
+                                        @input="univalent()">
+                                </div>
+                            </div>
+                            <div class="row">
+                                <table id="table" class="table table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <th class="w80">序号</th>
+                                            <th class="w150">阶段</th>
+                                            <th class="w150">类别</th>
+                                            <th class="w150">模块</th>
+                                            <th class="w200">描述</th>
+                                            <th class="w100">工时</th>
+                                            <th class="w100">价格/元</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- 阶段列表 -->
+                                        <tr v-for="(stageRowItem,stageIndex) in tableData" :key="stageRowItem.stageId">
+                                            <!-- 序号 -->
+                                            <!-- 注意删除的序号重置，没必要用stageId，想啥呢 -->
+                                            <td style="text-align:center">{{stageIndex+1}}</td>
+                                            <!-- 阶段 -->
+                                            <td class="w200">
+                                                <input :class="{previewstyle: preview}" type="text" :disabled="preview"
+                                                    v-bind:value="stageRowItem.stageName" v-model="stageRowItem.stageName" />
+                                                <button v-if="!preview" @click=delStage(stageIndex) :disabled="preview"
+                                                    class="btn btn-default btn-sm">
+                                                    <span class="glyphicon glyphicon-trash"></span>
+                                                    <!-- 删除阶段 -->
+                                                </button>
+                                            </td>
+                                            <!-- 类别 -->
+                                            <td colspan="5">
+                                                <table class="table table-bordered category-table">
+                                                    <tr v-for="(categoryRowItem,categoryIndex) in tableData[stageIndex].categoryRowlist"
+                                                        :key="categoryRowItem.categoryId">
+                                                        <td colspan="1" class="w200">
+                                                            <input :class="{previewstyle: preview}" type="text"
+                                                                :disabled="preview" v-model="categoryRowItem.categoryName" />
+                                                            <button v-if="!preview" @click=delCategory(stageIndex,categoryIndex)
+                                                                class="btn btn-default btn-sm">
+                                                                <!-- 删除类别 -->
+                                                                <span class="glyphicon glyphicon-trash"></span>
+                                                            </button>
+                                                        </td>
+                                                        <!-- 模块 -->
+                                                        <td colspan="4">
+                                                            <table class="table table-bordered module-table">
+                                                                <tr v-for="(moduleRowItem,moduleIndex) in tableData[stageIndex].categoryRowlist[categoryIndex].moduleRowList"
+                                                                    :key="moduleRowItem.moduleId">
+                                                                    <td class="w200">
+                                                                        <input :class="{previewstyle: preview}"
+                                                                            :disabled="preview" type="text" v-model="moduleRowItem.moduleName"
+                                                                            id="module-td">
+                                                                        <button v-if="!preview" @click=delModule(stageIndex,categoryIndex,moduleIndex)
+                                                                            class="btn btn-default btn-sm" id="module-td">
+                                                                            <span class="glyphicon glyphicon-trash"></span>删除模块</button>
+                                                                    </td>
+                                                                    <!-- 描述 -->
+                                                                    <td class="w200">
+                                                                        <input :class="{previewstyle: preview}"
+                                                                            :disabled="preview" type="text" v-model="moduleRowItem.description"
+                                                                            id="module-td">
+                                                                    </td>
+                                                                    <!-- 工时 -->
+                                                                    <td class="w200">
+                                                                        <input :class="{previewstyle: preview}"
+                                                                            :disabled="preview" v-model="moduleRowItem.workHours"
+                                                                            @input="univalent()" id="module-td">
+                                                                    </td>
+                                                                    <!-- 价格 -->
+                                                                    <td class="w200">
+                                                                        <input :class="{previewstyle: preview}"
+                                                                            v-bind:value="moduleRowItem.price" v-model="moduleRowItem.price"
+                                                                            disabled id="module-td">
+                                                                    </td>
+                                                                </tr>
+                                                                <tr v-if="!preview">
+                                                                    <td colspan="4">
+                                                                        <button @click="addModuleRow(stageIndex,categoryIndex)"
+                                                                            id="module-td" class="btn btn-default btn-sm">
+                                                                            <span class="glyphicon glyphicon-plus"></span>
+                                                                            添加模块
+                                                                        </button>
+                                                                    </td>
+                                                                </tr>
+                                                            </table>
+                                                        </td>
+                                                    </tr>
+                                                    <tr v-if="!preview">
+                                                        <td colspan="5">
+                                                            <button @click="addCategoryRow(stageIndex)" :disabled="preview"
+                                                                class="btn btn-default btn-sm"><span class="glyphicon glyphicon-plus"></span>添加类别</button>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                        <!-- 添加阶段 -->
+                                        <tr v-if="!preview">
+                                            <td style="width:60px"></td>
+                                            <td colspan="6">
+                                                <button @click="addStageRow()" class="btn btn-default btn-sm">
+                                                    <span class="glyphicon glyphicon-plus"></span>
+                                                    添加阶段
+                                                </button>
+                                            </td>
+                                        </tr>
+
+                                    </tbody>
+                                    <tfoot>
+                                        <tr>
+                                            <td colspan="6"><span>总计</span></td>
+                                            <td style="width:200px;text-align:center"><span>{{sumdatas}}</span></td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="src/jquery-1.11.3.js"></script>
+    <script src="src/bootstrap.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue"></script>
+    <script type="text/javascript">
+        window.onload = function () {
+            var app = new Vue({
+                el: "#app",
+                data() {
+                    return {
+                        preview: false,
+                        unitPrice: 1,//单价
+                        sumdatas: 0,//总计
+                        tableData: [{
+                            stageId: 0,
+                            stageName: '开发',
+                            categoryRowlist: [
+                                {
+                                    categoryId: 0,
+                                    categoryName: '商品展示',
+                                    moduleRowList: [
+                                        {
+                                            moduleId: 0,
+                                            moduleName: '支付宝',
+                                            description: "客户可以使用支付宝支付",
+                                            workHours: 1,
+                                            price: 0
+                                        }
+                                    ]
+                                }
+                            ]
+                        }]
+                    }
+                },
+                created() {
+                    this.univalent()
+                },
+                methods: {
+                    addStageRow() {
+                        console.log(this.tableData)
+                        let list = {
+                            stageId: this.tableData.length,
+                            stageName: '',
+                            categoryRowlist: [
+                                {
+                                    categoryId: 0,
+                                    categoryName: '',
+                                    moduleRowList: [
+                                        {
+                                            moduleId: 0,
+                                            moduleName: '',
+                                            description: "",
+                                            workHours: 0,
+                                            price: 0
+                                        }
+                                    ]
+                                }
+                            ]
+                        };
+                        this.tableData.push(list);
+                    },
+                    addCategoryRow(stageIndex) {
+                        let categoryRowlist = {
+                            categoryId: this.tableData[stageIndex].categoryRowlist.length,
+                            categoryName: '',
+                            moduleRowList: [
+                                {
+                                    moduleId: 0,
+                                    moduleName: '',
+                                    description: "",
+                                    workHours: 0,
+                                    price: 0
+                                }
+                            ]
+                        }
+                        this.tableData[stageIndex].categoryRowlist.push(categoryRowlist)
+                        console.log(this.tableData)
+                    },
+                    addModuleRow(stageIndex, categoryIndex) {
+                        console.log(stageIndex, categoryIndex)
+                        const moduleLength = this.tableData[stageIndex].categoryRowlist[categoryIndex].length;
+                        let moduleRowList = {
+                            moduleId: moduleLength,
+                            moduleName: '',
+                            description: "",
+                            workHours: 0,
+                            price: 0
+                        }
+                        this.tableData[stageIndex].categoryRowlist[categoryIndex].moduleRowList.push(moduleRowList);
+                        console.log(this.tableData);
+                    },
+                    delStage(stageIndex) {
+                        console.log(stageIndex)
+                        if (this.tableData.length > 1) {
+                            this.tableData.splice(stageIndex, 1)
+                        } else {
+                            alert('不可删除！')
+                        }
+                    },
+                    delCategory(stageIndex, categoryIndex) {
+                        console.log(categoryIndex);
+                        if (this.tableData[stageIndex].categoryRowlist.length > 1) {
+                            this.tableData[stageIndex].categoryRowlist.splice(categoryIndex, 1);
+                        } else {
+                            alert('不可删除！！')
+                        }
+                    },
+                    delModule(stageIndex, categoryIndex, moduleIndex) {
+                        console.log(moduleIndex);
+                        if (this.tableData[stageIndex].categoryRowlist[categoryIndex].moduleRowList.length > 1) {
+                            this.tableData[stageIndex].categoryRowlist[categoryIndex].moduleRowList.splice(moduleIndex, 1);
+                        } else {
+                            alert('不可删除！！!')
+                        }
+                    },
+                    calculate(stageIndex, categoryIndex, moduleIndex) {
+                        var moduleRowList = this.tableData[stageIndex].categoryRowlist[categoryIndex].moduleRowList;
+                        moduleRowList.price = moduleRowList.workHours * this.unitPrice;
+                        console.log(moduleRowList.price)
+                    },
+                    show() {
+                        this.preview = !this.preview;
+                        console.log(this.preview)
+                    },
+                    univalent() {
+                        this.sumdatas = 0
+                        this.tableData.forEach(element => {
+                            element.categoryRowlist.forEach(item => {
+                                item.moduleRowList.forEach(price => {
+                                    price.price = price.workHours / 1 * this.unitPrice
+                                    this.sumdatas += price.price
+                                    console.log(price, 'unitPrice')
+                                })
+                            })
+                        });
+                    }
+                }
+            })
+
+        }
+    </script>
+</body>
+
+</html>
